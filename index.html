@@ -899,6 +899,7 @@
 
             // ✅ Play the chime sound
             if (chimeSound) {
+                console.log('🔔 Attempting to play chime...');
                 chimeSound.play().catch(e => {
                     console.error('Sound playback failed:', e);
                 });
