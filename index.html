@@ -553,6 +553,9 @@
     <script src="https://accounts.google.com/gsi/client"></script>
 
     <script>
+        // Sound File
+        const chimeSound = new Audio('https://actions.google.com/sounds/v1/alarms/medium_bell_ring.ogg');
+        
         // Google Drive API Configuration
         const CLIENT_ID = '162726658771-0135vrqkddopuk08h2h99eg4b2oslatr.apps.googleusercontent.com';
         const API_KEY = 'AIzaSyAVoFEHwfj6i1UgxSU-snIgXtXySB58bjw';
@@ -893,6 +896,13 @@
         async function completeSession() {
             isRunning = false;
             clearInterval(timerInterval);
+
+            // ✅ Play the chime sound
+            if (chimeSound) {
+                chimeSound.play().catch(e => {
+                    console.error('Sound playback failed:', e);
+                });
+            }
             
             // Update practice data
             const today = new Date().toDateString();
