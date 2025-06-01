@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindfulness for Unconditional Well-being</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .auth-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .auth-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+        
+        .status-indicator.connected {
+            background: #10b981;
+        }
+        
+        .main-content {
+            display: none;
+        }
+        
+        .main-content.show {
+            display: block;
+        }
+        
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .practice-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        
+        .practice-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .practice-card.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        }
+        
+        .practice-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .practice-icon {
+            font-size: 1.5em;
+        }
+        
+        .practice-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .practice-details {
+            display: none;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .practice-details.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .timer-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .timer-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .duration-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .duration-btn {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .duration-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .progress-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .progress-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .progress-item:last-child {
+            border-bottom: none;
+        }
+        
+        .quote {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.1em;
+            font-style: italic;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .tips {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .tips h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+        
+        .tips ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tips li {
+            padding: 8px 0;
+            color: #666;
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .sync-status {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #0c4a6e;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0ea5e9;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .timer-display {
+                font-size: 2.5em;
+            }
+            
+            .timer-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧘‍♀️ Mindfulness for Unconditional Well-being</h1>
+        
+        <div class="auth-section">
+            <div class="auth-status">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="authStatus">Connecting to Google Drive...</span>
+            </div>
+            <button class="btn btn-primary" id="authBtn" onclick="handleAuth()" style="display: none;">
+                Connect to Google Drive
+            </button>
+            <button class="btn btn-secondary" id="signOutBtn" onclick="signOut()" style="display: none;">
+                Sign Out
+            </button>
+            <div id="syncStatus" class="sync-status" style="display: none;">
+                <span class="loading"></span>
+                Syncing with Google Drive...
+            </div>
+        </div>
+
+        <div class="main-content" id="mainContent">
+            <div class="intro">
+                "Happiness that depends on circumstances is temporary. 
+                True well-being comes from finding peace with what is."
+            </div>
+
+            <div class="quote">
+                "You are the sky, everything else is just the weather passing through."
+            </div>
+
+            <div class="timer-section">
+                <h3>🕐 Flexible Practice Timer</h3>
+                <div class="timer-display" id="timerDisplay">05:00</div>
+                
+                <div class="duration-selector">
+                    <div class="duration-btn" onclick="setDuration(3)">3 min</div>
+                    <div class="duration-btn selected" onclick="setDuration(5)">5 min</div>
+                    <div class="duration-btn" onclick="setDuration(10)">10 min</div>
+                    <div class="duration-btn" onclick="setDuration(15)">15 min</div>
+                    <div class="duration-btn" onclick="setDuration(20)">20 min</div>
+                </div>
+                
+                <div class="timer-controls">
+                    <button class="btn btn-primary" onclick="startTimer()">Start Practice</button>
+                    <button class="btn btn-secondary" onclick="pauseTimer()">Pause</button>
+                    <button class="btn btn-secondary" onclick="resetTimer()">Reset</button>
+                </div>
+            </div>
+
+            <div class="practice-grid">
+                <div class="practice-card" onclick="togglePractice(this)">
+                    <div class="practice-title">
+                        <span class="practice-icon">🌊</span>
+                        Present Moment Awareness
+                    </div>
+                    <div class="practice-description">
+                        Find peace in the here and now, regardless of circumstances
+                    </div>
+                    <div class="practice-details">
+                        <strong>Comfortable Position:</strong> Sit in any chair, lie down, or even stand - whatever feels right for your body.<br><br>
+                        <strong>Practice:</strong><br>
+                        • Notice 5 things you can see right now<br>
+                        • Notice 4 things you can hear<br>
+                        • Notice 3 things you can feel (temperature, textures)<br>
+                        • Notice 2 things you can smell<br>
+                        • Notice 1 thing you can taste<br><br>
+                        <strong>Key insight:</strong> This moment contains everything you need. Your happiness doesn't depend on changing anything about this moment.
+                    </div>
+                </div>
+
+                <div class="practice-card" onclick="togglePractice(this)">
+                    <div class="practice-title">
+                        <span class="practice-icon">🌸</span>
+                        Beauty in the Ordinary
+                    </div>
+                    <div class="practice-description">
+                        Cultivate appreciation for what's already here
+                    </div>
+                    <div class="practice-details">
+                        <strong>Practice:</strong><br>
+                        • Look around and find something ordinary (a cup, a leaf, your hand)<br>
+                        • Spend 2-3 minutes really observing it<br>
+                        • Notice its colors, textures, the light on it<br>
+                        • Appreciate the miracle that it exists at all<br>
+                        • Extend this appreciation to yourself and your current situation<br><br>
+                        <strong>Mantra:</strong> "Everything I need to be happy is already here."
+                    </div>
+                </div>
+
+                <div class="practice-card" onclick="togglePractice(this)">
+                    <div class="practice-title">
+                        <span class="practice-icon">🕊️</span>
+                        Letting Go of Control
+                    </div>
+                    <div class="practice-description">
+                        Release attachment to specific outcomes
+                    </div>
+                    <div class="practice-details">
+                        <strong>Practice:</strong><br>
+                        • Think of something you're worried about or wanting to control<br>
+                        • Take a deep breath and imagine placing it in your open palm<br>
+                        • Visualize gently blowing it away like dandelion seeds<br>
+                        • Say: "I release my need to control this outcome"<br>
+                        • Feel the lightness that comes with letting go<br><br>
+                        <strong>Reminder:</strong> Your peace doesn't depend on things going your way.
+                    </div>
+                </div>
+
+                <div class="practice-card" onclick="togglePractice(this)">
+                    <div class="practice-title">
+                        <span class="practice-icon">💎</span>
+                        Unconditional Gratitude
+                    </div>
+                    <div class="practice-description">
+                        Find appreciation independent of circumstances
+                    </div>
+                    <div class="practice-details">
+                        <strong>Practice:</strong><br>
+                        • Start with your breath - appreciate that you're breathing<br>
+                        • Appreciate your awareness itself - the miracle of consciousness<br>
+                        • Appreciate this moment for simply existing<br>
+                        • Find gratitude for challenges as opportunities for growth<br>
+                        • End with: "I am grateful for life itself, exactly as it is"<br><br>
+                        <strong>Goal:</strong> Gratitude that isn't dependent on things being "good."
+                    </div>
+                </div>
+
+                <div class="practice-card" onclick="togglePractice(this)">
+                    <div class="practice-title">
+                        <span class="practice-icon">🌱</span>
+                        Walking Meditation
+                    </div>
+                    <div class="practice-description">
+                        Perfect for when sitting still feels uncomfortable
+                    </div>
+                    <div class="practice-details">
+                        <strong>Practice:</strong><br>
+                        • Walk very slowly, indoors or outdoors<br>
+                        • Feel each step: heel, arch, toe touching ground<br>
+                        • When your mind wanders to worries or desires, gently return to the sensation of walking<br>
+                        • With each step, say silently: "I am exactly where I need to be"<br><br>
+                        <strong>Perfect for:</strong> Stiff bodies, restless minds, and integrating mindfulness into daily life.
+                    </div>
+                </div>
+
+                <div class="practice-card" onclick="togglePractice(this)">
+                    <div class="practice-title">
+                        <span class="practice-icon">🫁</span>
+                        Traditional Breath Meditation
+                    </div>
+                    <div class="practice-description">
+                        Classic mindfulness practice focusing purely on the breath
+                    </div>
+                    <div class="practice-details">
+                        <strong>Comfortable Position:</strong> Sit comfortably with spine naturally upright, hands resting easily.<br><br>
+                        <strong>Practice:</strong><br>
+                        • Close your eyes or soften your gaze downward<br>
+                        • Find your natural breathing rhythm - don't change it<br>
+                        • Feel the sensation of breath at your nostrils, chest, or belly<br>
+                        • When thoughts arise, simply notice them without judgment<br>
+                        • Gently return attention to the breath, again and again<br>
+                        • Each return is a moment of awakening, not failure<br><br>
+                        <strong>Key insight:</strong> The practice isn't to stop thinking, but to notice when you're thinking and kindly come back to the breath. This builds the muscle of awareness.
+                    </div>
+                </div>
+
+                <div class="practice-card" onclick="togglePractice(this)">
+                    <div class="practice-title">
+                        <span class="practice-icon">☁️</span>
+                        Emotional Weather
+                    </div>
+                    <div class="practice-description">
+                        Observe feelings without being controlled by them
+                    </div>
+                    <div class="practice-details">
+                        <strong>Practice:</strong><br>
+                        • Notice any emotions present right now<br>
+                        • Instead of labeling them as "good" or "bad," see them as weather<br>
+                        • Say: "I notice clouds of sadness passing through" or "I notice sunshine of joy"<br>
+                        • Remember: You are the sky, not the weather<br>
+                        • Your essential well-being remains untouched by emotional weather<br><br>
+                        <strong>Key insight:</strong> Emotions are temporary visitors, not permanent residents.
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <h3>🌟 Daily Practice Tracker (Synced to Google Drive)</h3>
+                <div class="progress-item">
+                    <span>Practices completed today:</span>
+                    <span id="todayCount">0</span>
+                </div>
+                <div class="progress-item">
+                    <span>Current streak:</span>
+                    <span id="streakCount">0 days</span>
+                </div>
+                <div class="progress-item">
+                    <span>Total practice time:</span>
+                    <span id="totalTime">0 minutes</span>
+                </div>
+                <div class="progress-item">
+                    <span>Last sync:</span>
+                    <span id="lastSync">Never</span>
+                </div>
+            </div>
+
+            <div class="tips">
+                <h3>💡 Tips for Sustainable Practice</h3>
+                <ul>
+                    <li><strong>Start tiny:</strong> Even 2-3 minutes daily is better than 30 minutes once a week</li>
+                    <li><strong>Use any position:</strong> Chair, bed, standing, walking - comfort is key</li>
+                    <li><strong>Link to existing habits:</strong> Practice while brushing teeth, waiting in line, or drinking morning coffee</li>
+                    <li><strong>Remember the goal:</strong> You're not trying to feel differently, you're learning that your happiness doesn't depend on feeling differently</li>
+                    <li><strong>Be patient:</strong> Spiritual growth happens gradually, like a tree growing</li>
+                    <li><strong>Celebrate small wins:</strong> Notice moments when you feel peaceful regardless of circumstances</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google APIs -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <script>
+        // Google Drive API Configuration
+        const CLIENT_ID = '162726658771-0135vrqkddopuk08h2h99eg4b2oslatr.apps.googleusercontent.com';
+        const API_KEY = 'AIzaSyAVoFEHwfj6i1UgxSU-snIgXtXySB58bjw';
+        const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+        let gapi, google;
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+        let isSignedIn = false;
+
+        // Timer variables
+        let timerInterval;
+        let timeLeft = 300; // 5 minutes default
+        let isRunning = false;
+        let selectedDuration = 5;
+
+        // Practice data
+        let practiceData = {
+            todayCount: 0,
+            streak: 0,
+            totalTime: 0,
+            lastPracticeDate: null,
+            lastSync: null
+        };
+
+        // Initialize Google APIs
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+            });
+            gapiInited = true;
+            maybeEnableButtons();
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // defined later
+            });
+            gisInited = true;
+            maybeEnableButtons();
+        }
+
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                updateAuthStatus();
+            }
+        }
+
+        function updateAuthStatus() {
+            if (gapi.client.getToken() === null) {
+                // Not signed in
+                document.getElementById('authStatus').textContent = 'Connect to Google Drive to sync your progress';
+                document.getElementById('statusIndicator').classList.remove('connected');
+                document.getElementById('authBtn').style.display = 'inline-block';
+                document.getElementById('signOutBtn').style.display = 'none';
+                document.getElementById('mainContent').classList.remove('show');
+                isSignedIn = false;
+            } else {
+                // Signed in
+                document.getElementById('authStatus').textContent = 'Connected to Google Drive ✓';
+                document.getElementById('statusIndicator').classList.add('connected');
+                document.getElementById('authBtn').style.display = 'none';
+                document.getElementById('signOutBtn').style.display = 'inline-block';
+                document.getElementById('mainContent').classList.add('show');
+                isSignedIn = true;
+                loadPracticeData();
+            }
+        }
+
+        function handleAuth() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) {
+                    throw (resp);
+                }
+                updateAuthStatus();
+            };
+
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        function signOut() {
+            const token = gapi.client.getToken();
+            if (token !== null) {
+                google.accounts.oauth2.revoke(token.access_token);
+                gapi.client.setToken('');
+                updateAuthStatus();
+            }
+        }
+
+        // Google Drive file operations
+        async function loadPracticeData() {
+            try {
+                showSyncStatus(true);
+                
+                // Search for existing data file
+                const response = await gapi.client.drive.files.list({
+                    q: "name='mindfulness-practice-data.json' and parents in 'root'",
+                    spaces: 'drive'
+                });
+
+                if (response.result.files.length > 0) {
+                    // File exists, load it
+                    const fileId = response.result.files[0].id;
+                    const fileContent = await gapi.client.drive.files.get({
+                        fileId: fileId,
+                        alt: 'media'
+                    });
+                    
+                    practiceData = JSON.parse(fileContent.body);
+                    practiceData.lastSync = new Date().toLocaleString();
+                } else {
+                    // File doesn't exist, create it
+                    await savePracticeData();
+                }
+                
+                updateDisplay();
+                showSyncStatus(false);
+            } catch (error) {
+                console.error('Error loading practice data:', error);
+                showSyncStatus(false);
+                // Fall back to local storage if Drive fails
+                const localData = localStorage.getItem('mindfulnessData');
+                if (localData) {
+                    practiceData = JSON.parse(localData);
+                    updateDisplay();
+                }
+            }
+        }
+
+        async function savePracticeData() {
+            if (!isSignedIn) return;
+            
+            try {
+                showSyncStatus(true);
+                
+                const dataBlob = new Blob([JSON.stringify(practiceData, null, 2)], {
+                    type: 'application/json'
+                });
+
+                // Check if file already exists
+                const searchResponse = await gapi.client.drive.files.list({
+                    q: "name='mindfulness-practice-data.json' and parents in 'root'",
+                    spaces: 'drive'
+                });
+
+                let fileId;
+                if (searchResponse.result.files.length > 0) {
+                    // Update existing file
+                    fileId = searchResponse.result.files[0].id;
+                    const form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify({
+                        name: 'mindfulness-practice-data.json'
+                    })], {type: 'application/json'}));
+                    form.append('file', dataBlob);
+
+                    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`, {
+                        method: 'PATCH',
+                        headers: new Headers({
+                            'Authorization': `Bearer ${gapi.client.getToken().access_token}`
+                        }),
+                        body: form
+                    });
+                } else {
+                    // Create new file
+                    const form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify({
+                        name: 'mindfulness-practice-data.json',
+                        parents: ['root']
+                    })], {type: 'application/json'}));
+                    form.append('file', dataBlob);
+
+                    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: new Headers({
+                            'Authorization': `Bearer ${gapi.client.getToken().access_token}`
+                        }),
+                        body: form
+                    });
+                }
+
+                practiceData.lastSync = new Date().toLocaleString();
+                updateDisplay();
+                showSyncStatus(false);
+                
+                // Also save to localStorage as backup
+                localStorage.setItem('mindfulnessData', JSON.stringify(practiceData));
+                
+            } catch (error) {
+                console.error('Error saving practice data:', error);
+                showSyncStatus(false);
+                // Fall back to localStorage
+                localStorage.setItem('mindfulnessData', JSON.stringify(practiceData));
+            }
+        }
+
+        function showSyncStatus(show) {
+            document.getElementById('syncStatus').style.display = show ? 'block' : 'none';
+        }
+
+        // Timer functions
+        function setDuration(minutes) {
+            if (isRunning) return;
+            
+            selectedDuration = minutes;
+            timeLeft = minutes * 60;
+            updateTimerDisplay();
+            
+            // Update selected button
+            document.querySelectorAll('.duration-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    completeSession();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            timeLeft = selectedDuration * 60;
+            updateTimerDisplay();
+        }
+
+        async function completeSession() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            
+            // Update practice data
+            const today = new Date().toDateString();
+            
+            if (practiceData.lastPracticeDate !== today) {
+                practiceData.todayCount = 1;
+                
+                // Update streak
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (practiceData.lastPracticeDate === yesterday.toDateString()) {
+                    practiceData.streak++;
+                } else {
+                    practiceData.streak = 1;
+                }
+            } else {
+                practiceData.todayCount++;
+            }
+            
+            practiceData.totalTime += selectedDuration;
+            practiceData.lastPracticeDate = today;
+            
+            // Save to Google Drive
+            await savePracticeData();
+            
+            alert('🎉 Practice complete! Your progress has been synced to Google Drive.');
+            resetTimer();
+        }
+
+        function updateDisplay() {
+            document.getElementById('todayCount').textContent = practiceData.todayCount;
+            document.getElementById('streakCount').textContent = practiceData.streak + ' days';
+            document.getElementById('totalTime').textContent = practiceData.totalTime + ' minutes';
+            document.getElementById('lastSync').textContent = practiceData.lastSync || 'Never';
+        }
+
+        function togglePractice(card) {
+            const details = card.querySelector('.practice-details');
+            const isActive = card.classList.contains('active');
+            
+            // Close all other cards
+            document.querySelectorAll('.practice-card').forEach(c => {
+                c.classList.remove('active');
+                c.querySelector('.practice-details').classList.remove('show');
+            });
+            
+            // Toggle current card
+            if (!isActive) {
+                card.classList.add('active');
+                details.classList.add('show');
+            }
+        }
+
+        // Initialize on page load
+        updateTimerDisplay();
+
+        // Load Google APIs
+        if (typeof gapi !== 'undefined') {
+            gapiLoaded();
+        } else {
+            console.log('GAPI not loaded yet');
+        }
+
+        if (typeof google !== 'undefined') {
+            gisLoaded();
+        } else {
+            console.log('Google Identity Services not loaded yet');
+        }
+    </script>
+    
+    <!-- Load Google APIs -->
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
