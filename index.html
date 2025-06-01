@@ -559,7 +559,6 @@
         const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
         const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-        let gapi, google;
         let tokenClient;
         let gapiInited = false;
         let gisInited = false;
@@ -580,62 +579,123 @@
             lastSync: null
         };
 
-        // Initialize Google APIs
-        function gapiLoaded() {
-            gapi.load('client', initializeGapiClient);
-        }
-
-        async function initializeGapiClient() {
-            await gapi.client.init({
-                apiKey: API_KEY,
-                discoveryDocs: [DISCOVERY_DOC],
+        // Load Google APIs with better error handling
+        function loadGoogleAPIs() {
+            return new Promise((resolve, reject) => {
+                // Load GAPI first
+                const gapiScript = document.createElement('script');
+                gapiScript.src = 'https://apis.google.com/js/api.js';
+                gapiScript.onload = () => {
+                    console.log('✓ GAPI script loaded');
+                    
+                    // Load Google Identity Services
+                    const gisScript = document.createElement('script');
+                    gisScript.src = 'https://accounts.google.com/gsi/client';
+                    gisScript.onload = () => {
+                        console.log('✓ Google Identity Services script loaded');
+                        
+                        // Wait for both APIs to be available
+                        let attempts = 0;
+                        const checkAPIs = setInterval(() => {
+                            attempts++;
+                            console.log(`Checking APIs... attempt ${attempts}`);
+                            
+                            if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
+                                console.log('✓ Both APIs are available');
+                                clearInterval(checkAPIs);
+                                initializeAPIs().then(resolve).catch(reject);
+                            } else if (attempts > 10) {
+                                clearInterval(checkAPIs);
+                                reject(new Error('APIs failed to load after 10 attempts'));
+                            }
+                        }, 1000);
+                    };
+                    gisScript.onerror = () => reject(new Error('Failed to load Google Identity Services'));
+                    document.head.appendChild(gisScript);
+                };
+                gapiScript.onerror = () => reject(new Error('Failed to load GAPI'));
+                document.head.appendChild(gapiScript);
             });
-            gapiInited = true;
-            maybeEnableButtons();
         }
 
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: '', // defined later
+        async function initializeAPIs() {
+            console.log('Initializing APIs...');
+            
+            // Initialize GAPI
+            await new Promise((resolve, reject) => {
+                gapi.load('client', () => {
+                    console.log('✓ GAPI client loaded');
+                    gapi.client.init({
+                        apiKey: API_KEY,
+                        discoveryDocs: [DISCOVERY_DOC],
+                    }).then(() => {
+                        console.log('✓ GAPI client initialized');
+                        gapiInited = true;
+                        resolve();
+                    }).catch(reject);
+                });
             });
-            gisInited = true;
-            maybeEnableButtons();
-        }
 
-        function maybeEnableButtons() {
-            if (gapiInited && gisInited) {
-                updateAuthStatus();
+            // Initialize Google Identity Services
+            if (typeof google !== 'undefined' && google.accounts) {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: '', // defined later
+                });
+                console.log('✓ Google Identity Services initialized');
+                gisInited = true;
+            } else {
+                throw new Error('Google Identity Services not available');
             }
+
+            updateAuthStatus();
         }
 
         function updateAuthStatus() {
+            const authStatus = document.getElementById('authStatus');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const authBtn = document.getElementById('authBtn');
+            const signOutBtn = document.getElementById('signOutBtn');
+            const mainContent = document.getElementById('mainContent');
+
+            if (!gapiInited || !gisInited) {
+                authStatus.textContent = 'Initializing...';
+                return;
+            }
+
             if (gapi.client.getToken() === null) {
                 // Not signed in
-                document.getElementById('authStatus').textContent = 'Connect to Google Drive to sync your progress';
-                document.getElementById('statusIndicator').classList.remove('connected');
-                document.getElementById('authBtn').style.display = 'inline-block';
-                document.getElementById('signOutBtn').style.display = 'none';
-                document.getElementById('mainContent').classList.remove('show');
+                authStatus.textContent = 'Connect to Google Drive to sync your progress';
+                statusIndicator.classList.remove('connected');
+                authBtn.style.display = 'inline-block';
+                signOutBtn.style.display = 'none';
+                mainContent.classList.remove('show');
                 isSignedIn = false;
             } else {
                 // Signed in
-                document.getElementById('authStatus').textContent = 'Connected to Google Drive ✓';
-                document.getElementById('statusIndicator').classList.add('connected');
-                document.getElementById('authBtn').style.display = 'none';
-                document.getElementById('signOutBtn').style.display = 'inline-block';
-                document.getElementById('mainContent').classList.add('show');
+                authStatus.textContent = 'Connected to Google Drive ✓';
+                statusIndicator.classList.add('connected');
+                authBtn.style.display = 'none';
+                signOutBtn.style.display = 'inline-block';
+                mainContent.classList.add('show');
                 isSignedIn = true;
                 loadPracticeData();
             }
         }
 
         function handleAuth() {
+            if (!tokenClient) {
+                alert('Authentication system not ready. Please refresh the page.');
+                return;
+            }
+
             tokenClient.callback = async (resp) => {
                 if (resp.error !== undefined) {
-                    throw (resp);
+                    console.error('Auth error:', resp);
+                    return;
                 }
+                console.log('✓ Authentication successful');
                 updateAuthStatus();
             };
 
@@ -762,7 +822,10 @@
         }
 
         function showSyncStatus(show) {
-            document.getElementById('syncStatus').style.display = show ? 'block' : 'none';
+            const syncStatus = document.getElementById('syncStatus');
+            if (syncStatus) {
+                syncStatus.style.display = show ? 'block' : 'none';
+            }
         }
 
         // Timer functions
@@ -781,8 +844,10 @@
         function updateTimerDisplay() {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
-            document.getElementById('timerDisplay').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const display = document.getElementById('timerDisplay');
+            if (display) {
+                display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
         }
 
         function startTimer() {
@@ -845,10 +910,17 @@
         }
 
         function updateDisplay() {
-            document.getElementById('todayCount').textContent = practiceData.todayCount;
-            document.getElementById('streakCount').textContent = practiceData.streak + ' days';
-            document.getElementById('totalTime').textContent = practiceData.totalTime + ' minutes';
-            document.getElementById('lastSync').textContent = practiceData.lastSync || 'Never';
+            const elements = {
+                todayCount: document.getElementById('todayCount'),
+                streakCount: document.getElementById('streakCount'),
+                totalTime: document.getElementById('totalTime'),
+                lastSync: document.getElementById('lastSync')
+            };
+
+            if (elements.todayCount) elements.todayCount.textContent = practiceData.todayCount;
+            if (elements.streakCount) elements.streakCount.textContent = practiceData.streak + ' days';
+            if (elements.totalTime) elements.totalTime.textContent = practiceData.totalTime + ' minutes';
+            if (elements.lastSync) elements.lastSync.textContent = practiceData.lastSync || 'Never';
         }
 
         function togglePractice(card) {
@@ -868,58 +940,30 @@
             }
         }
 
-        // Initialize on page load
+        // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, initializing...');
             updateTimerDisplay();
             
-            // Check if APIs are loaded, if not wait for them
-            let checkAPIs = setInterval(() => {
-                if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
-                    clearInterval(checkAPIs);
-                    gapiLoaded();
-                    gisLoaded();
-                } else {
-                    console.log('Waiting for Google APIs to load...');
-                }
-            }, 1000);
-        });
-
-        // Load Google APIs
-        function loadGoogleAPIs() {
-            // Load GAPI
-            const gapiScript = document.createElement('script');
-            gapiScript.src = 'https://apis.google.com/js/api.js';
-            gapiScript.onload = () => {
-                console.log('GAPI loaded');
-                window.gapiLoaded = true;
-                checkBothAPIsLoaded();
-            };
-            document.head.appendChild(gapiScript);
-
-            // Load Google Identity Services
-            const gisScript = document.createElement('script');
-            gisScript.src = 'https://accounts.google.com/gsi/client';
-            gisScript.onload = () => {
-                console.log('Google Identity Services loaded');
-                window.gisLoaded = true;
-                checkBothAPIsLoaded();
-            };
-            document.head.appendChild(gisScript);
-        }
-
-        function checkBothAPIsLoaded() {
-            if (window.gapiLoaded && window.gisLoaded) {
-                initializeAPIs();
+            // Update auth status to show loading
+            const authStatus = document.getElementById('authStatus');
+            if (authStatus) {
+                authStatus.textContent = 'Loading Google APIs...';
             }
-        }
-
-        function initializeAPIs() {
-            gapiLoaded();
-            gisLoaded();
-        }
-
-        // Load APIs when page loads
-        loadGoogleAPIs();
+            
+            // Load and initialize Google APIs
+            loadGoogleAPIs()
+                .then(() => {
+                    console.log('✓ All APIs loaded and initialized successfully');
+                })
+                .catch((error) => {
+                    console.error('✗ Failed to load APIs:', error);
+                    const authStatus = document.getElementById('authStatus');
+                    if (authStatus) {
+                        authStatus.textContent = 'Failed to load Google APIs. Please refresh the page.';
+                    }
+                });
+        });
     </script>
     
     <!-- Load Google APIs -->
