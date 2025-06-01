@@ -869,20 +869,57 @@
         }
 
         // Initialize on page load
-        updateTimerDisplay();
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTimerDisplay();
+            
+            // Check if APIs are loaded, if not wait for them
+            let checkAPIs = setInterval(() => {
+                if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
+                    clearInterval(checkAPIs);
+                    gapiLoaded();
+                    gisLoaded();
+                } else {
+                    console.log('Waiting for Google APIs to load...');
+                }
+            }, 1000);
+        });
 
         // Load Google APIs
-        if (typeof gapi !== 'undefined') {
-            gapiLoaded();
-        } else {
-            console.log('GAPI not loaded yet');
+        function loadGoogleAPIs() {
+            // Load GAPI
+            const gapiScript = document.createElement('script');
+            gapiScript.src = 'https://apis.google.com/js/api.js';
+            gapiScript.onload = () => {
+                console.log('GAPI loaded');
+                window.gapiLoaded = true;
+                checkBothAPIsLoaded();
+            };
+            document.head.appendChild(gapiScript);
+
+            // Load Google Identity Services
+            const gisScript = document.createElement('script');
+            gisScript.src = 'https://accounts.google.com/gsi/client';
+            gisScript.onload = () => {
+                console.log('Google Identity Services loaded');
+                window.gisLoaded = true;
+                checkBothAPIsLoaded();
+            };
+            document.head.appendChild(gisScript);
         }
 
-        if (typeof google !== 'undefined') {
-            gisLoaded();
-        } else {
-            console.log('Google Identity Services not loaded yet');
+        function checkBothAPIsLoaded() {
+            if (window.gapiLoaded && window.gisLoaded) {
+                initializeAPIs();
+            }
         }
+
+        function initializeAPIs() {
+            gapiLoaded();
+            gisLoaded();
+        }
+
+        // Load APIs when page loads
+        loadGoogleAPIs();
     </script>
     
     <!-- Load Google APIs -->
