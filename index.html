@@ -966,6 +966,18 @@
 
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
+
+            // Preload the sound
+            chimeSound.load();
+            
+            // Unlock playback on first interaction
+            document.body.addEventListener('click', () => {
+                chimeSound.play().then(() => {
+                    chimeSound.pause();
+                    chimeSound.currentTime = 0;
+                }).catch(() => {});
+            }, { once: true });
+            
             console.log('Page loaded, initializing...');
             updateTimerDisplay();
             
